@@ -45,7 +45,7 @@ Get-ChildItem (Join-Path $root "proxy") -File |
 $dst = Join-Path $OutDir "tools"
 New-Item -ItemType Directory -Force -Path $dst | Out-Null
 Get-ChildItem (Join-Path $root "tools") |
-    Where-Object { $_.Name -ne "dist.ps1" } |
+    Where-Object { $_.Name -notin @("dist.ps1", "release.ps1") } |
     Copy-Item -Destination $dst -Recurse -Force
 
 # --- project docs (the personal publishing runbook stays local) ---
