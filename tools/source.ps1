@@ -31,10 +31,12 @@ New-Item -ItemType Directory -Force -Path $dst | Out-Null
 Get-ChildItem (Join-Path $root "proxy") -File |
     Where-Object { $_.Extension -in ".cpp", ".h" } | Copy-Item -Destination $dst
 
-# --- tools (scripts + data files) ---
+# --- tools (scripts + data files), minus the local release-packaging script ---
 $dst = Join-Path $OutDir "tools"
 New-Item -ItemType Directory -Force -Path $dst | Out-Null
-Copy-Item (Join-Path $root "tools\*") $dst -Recurse -Force
+Get-ChildItem (Join-Path $root "tools") |
+    Where-Object { $_.Name -ne "dist.ps1" } |
+    Copy-Item -Destination $dst -Recurse -Force
 
 # --- project docs ---
 Get-ChildItem $root -File | Where-Object { $_.Extension -in ".md" } | Copy-Item -Destination $OutDir

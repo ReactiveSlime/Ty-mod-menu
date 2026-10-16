@@ -1,6 +1,6 @@
 # TyMod
 
-A no-clip mod for **TY the Tasmanian Tiger** (Steam HD, 2016) that bakes into the
+A mod menu for **TY the Tasmanian Tiger** (Steam HD, 2016) that bakes into the
 game as a DLL proxy, with an in-game ImGui menu.
 
 ## How it works
@@ -44,7 +44,7 @@ toward where the camera points; TyMod measures that direction and flies along it
 TyMod/
   proxy/            C++ mod source (dllmain, mod, overlay, noclip, camera, health, log)
   vendor/           imgui + minhook (git submodules)
-  tools/            build.ps1, install.ps1, uninstall.ps1, dist.ps1, source.ps1
+  tools/            build.ps1, install.ps1, uninstall.ps1, source.ps1
   build/            build output (OpenAL32.dll)
   backup/           pristine OpenAL32.dll.orig
 ```
