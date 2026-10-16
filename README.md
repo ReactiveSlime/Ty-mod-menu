@@ -43,22 +43,30 @@ toward where the camera points; TyMod measures that direction and flies along it
 ```
 TyMod/
   proxy/            C++ mod source (dllmain, mod, overlay, noclip, camera, health, log)
-  vendor/           imgui + minhook (git clones)
+  vendor/           imgui + minhook (git submodules)
   tools/            build.ps1, install.ps1, uninstall.ps1, dist.ps1, source.ps1
   build/            build output (OpenAL32.dll)
   backup/           pristine OpenAL32.dll.orig
 ```
 
-`tools\source.ps1` copies just the source (proxy + tools + vendor + docs, no build
-artifacts) into `dist\TyMod-src\` for uploading to GitHub.
+`tools\source.ps1` assembles a clean, GitHub-ready repo in `dist\TyMod-repo\`
+(proxy + tools + docs, no build artifacts) with imgui and minhook added as git
+submodules and an initial commit made.
 
 ## Build
 
 Requires Visual Studio 2022 with the C++ workload (x86 toolset).
 
+Clone with the submodules, then build:
+
 ```powershell
+git clone --recursive https://github.com/ReactiveSlime/Ty-mod-menu.git
+cd Ty-mod-menu
 pwsh -File tools\build.ps1
 ```
+
+Already cloned without `--recursive`? Run `git submodule update --init --recursive`
+first. The C++ toolset must also be on `PATH` (or `vcvars32.bat` sourced).
 
 ## Install / Uninstall
 
