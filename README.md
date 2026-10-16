@@ -53,6 +53,8 @@ TyMod/
 (proxy + tools + docs, no build artifacts) with imgui and minhook added as git
 submodules and an initial commit made.
 
+See **[PUBLISHING.md](PUBLISHING.md)** for the full build / ZIP / GitHub workflow.
+
 ## Build
 
 Requires Visual Studio 2022 with the C++ workload (x86 toolset).
