@@ -1,0 +1,324 @@
+Microsoft (R) COFF/PE Dumper Version 14.44.35228.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file D:\Games\Steam\steamapps\common\TY the Tasmanian Tiger\TY.exe
+
+File Type: EXECUTABLE IMAGE
+
+  Section contains the following imports:
+
+    OPENGL32.dll
+                5F91D0 Import Address Table
+                651498 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                   87 glHint
+                   6E glGetFloatv
+                    B glBindTexture
+                   4F glEnable
+                   48 glDrawArrays
+                   46 glDisable
+                   3F glCullFace
+                   13 glClearDepth
+                  159 wglCreateContext
+                  137 glTexParameteri
+                  134 glTexImage2D
+                   CA glPixelStorei
+                   69 glGenTextures
+                   42 glDeleteTextures
+                   6F glGetIntegerv
+                  135 glTexParameterf
+                  156 glViewport
+                   12 glClearColor
+                   10 glClear
+                   44 glDepthMask
+                   43 glDepthFunc
+                   3C glCopyTexImage2D
+                    D glBlendFunc
+                  164 wglMakeCurrent
+                  15B wglDeleteContext
+                   4A glDrawElements
+                  163 wglGetProcAddress
+                  15F wglGetCurrentDC
+                   7C glGetString
+                   37 glColorMask
+                   F4 glReadPixels
+                   82 glGetTexImage
+
+    USER32.dll
+                5F9268 Import Address Table
+                651530 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                  298 RegisterRawInputDevices
+                   49 ClientToScreen
+                  133 GetCursorPos
+                  2CB SetCursorPos
+                  31B ShowCursor
+                  1CB GetWindowRect
+                  125 GetClientRect
+                  23D MapVirtualKeyA
+                  151 GetKeyNameTextA
+                  158 GetKeyboardState
+                  246 MessageBoxA
+                  199 GetRawInputData
+                  363 ValidateRect
+                   AD DestroyWindow
+                  271 PostQuitMessage
+                   A0 DefWindowProcA
+                  26B PeekMessageA
+                   B4 DispatchMessageA
+                  33F TranslateMessage
+                  16F GetMessageA
+                  134 GetDC
+                    3 AdjustWindowRectEx
+                  30C SetWindowLongA
+                   23 ChangeDisplaySettingsA
+                   F4 EnumDisplaySettingsA
+                   F1 EnumDisplayDevicesA
+                  224 LoadImageA
+                   70 CreateWindowExA
+                  320 ShowWindow
+                  30F SetWindowPos
+                  357 UpdateWindow
+                  287 RegisterClassA
+                  222 LoadIconA
+                  288 RegisterClassExA
+                  2BF SetActiveWindow
+
+    WINMM.dll
+                5F92F8 Import Address Table
+                6515C0 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                   94 timeGetTime
+
+    XINPUT9_1_0.dll
+                5F9300 Import Address Table
+                6515C8 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                    4 XInputSetState
+                    3 XInputGetState
+
+    steam_api.dll
+                5F9390 Import Address Table
+                651658 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                  28D SteamAPI_Shutdown
+                  285 SteamAPI_IsSteamRunning
+                  291 SteamAPI_WriteMiniDump
+                  28B SteamAPI_SetMiniDumpComment
+                  294 SteamClient
+                  283 SteamAPI_Init
+                  2B4 SteamUser
+                  296 SteamFriends
+                  2B6 SteamUtils
+                  2B5 SteamUserStats
+                  293 SteamApps
+                  289 SteamAPI_RunCallbacks
+                  287 SteamAPI_RegisterCallback
+                  28F SteamAPI_UnregisterCallback
+                  286 SteamAPI_RegisterCallResult
+                  28E SteamAPI_UnregisterCallResult
+                  2B0 SteamRemoteStorage
+
+    OpenAL32.dll
+                5F930C Import Address Table
+                6515D4 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                    6 alBufferData
+                   10 alDeleteBuffers
+                   13 alDeleteSources
+                   15 alDistanceModel
+                   22 alGenBuffers
+                   25 alGenSources
+                   31 alGetBufferi
+                   48 alGetListenerfv
+                   4D alGetSource3f
+                   52 alGetSourcef
+                   54 alGetSourcei
+                   64 alListenerfv
+                   69 alSource3f
+                   6C alSourcePause
+                   6E alSourcePlay
+                   70 alSourceQueueBuffers
+                   73 alSourceStop
+                   75 alSourceUnqueueBuffers
+                   78 alSourcef
+                   79 alSourcefv
+                   7A alSourcei
+                   84 alcCloseDevice
+                   85 alcCreateContext
+                   86 alcDestroyContext
+                   8C alcGetError
+                   8E alcGetIntegerv
+                   90 alcGetString
+                   93 alcIsExtensionPresent
+                   96 alcMakeContextCurrent
+                   97 alcOpenDevice
+
+    KERNEL32.dll
+                5F9014 Import Address Table
+                6512DC Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                  266 GetModuleHandleExW
+                   E8 CreateThread
+                  152 ExitThread
+                  121 EncodePointer
+                  3A7 LoadLibraryExW
+                  252 GetLocaleInfoA
+                  4AD RtlUnwind
+                  34B InitializeSListHead
+                  2BE GetStartupInfoW
+                  36D IsProcessorFeaturePresent
+                  561 TerminateProcess
+                  543 SetUnhandledExceptionFilter
+                  582 UnhandledExceptionFilter
+                  267 GetModuleHandleW
+                   B6 CreateEventW
+                  5AC WaitForSingleObjectEx
+                  105 DeleteCriticalSection
+                  348 InitializeCriticalSectionAndSpinCount
+                  3A2 LeaveCriticalSection
+                  125 EnterCriticalSection
+                  2D6 GetSystemTimeAsFileTime
+                  15D FileTimeToSystemTime
+                  55E SystemTimeToTzSpecificLocalTime
+                  219 GetDiskFreeSpaceExA
+                  218 GetDiskFreeSpaceA
+                  440 RaiseException
+                  2D0 GetSystemInfo
+                  235 GetFileAttributesW
+                   B2 CreateDirectoryW
+                  251 GetLocalTime
+                  42E QueryPerformanceFrequency
+                  42D QueryPerformanceCounter
+                  151 ExitProcess
+                   CE CreateMutexA
+                  48C ReleaseMutex
+                  3F9 OutputDebugStringA
+                  367 IsDebuggerPresent
+                  338 HeapSize
+                  2A2 GetProcessHeap
+                  4ED SetEnvironmentVariableA
+                  19D FreeEnvironmentStringsW
+                  227 GetEnvironmentStringsW
+                  1C9 GetCommandLineW
+                  1C8 GetCommandLineA
+                  1B3 GetCPInfo
+                  286 GetOEMCP
+                  372 IsValidCodePage
+                  17D FindNextFileA
+                  16D FindFirstFileExA
+                  4EA SetEndOfFile
+                  5E0 WriteConsoleW
+                  522 SetStdHandle
+                  192 FlushFileBuffers
+                  232 GetFileAttributesExW
+                   D7 CreateProcessA
+                  22C GetExitCodeProcess
+                  336 HeapReAlloc
+                  396 LCMapStringW
+                   93 CompareStringW
+                  2C5 GetStringTypeW
+                  32F HeapAlloc
+                  333 HeapFree
+                   FE DecodePointer
+                  1A4 GetACP
+                  2C0 GetStdHandle
+                  262 GetModuleFileNameA
+                  23E GetFileType
+                   C2 CreateFileW
+                  1DC GetConsoleCP
+                  5CD WideCharToMultiByte
+                  5E1 WriteFile
+                  44E ReadConsoleW
+                  1EE GetConsoleMode
+                  3D1 MultiByteToWideChar
+                  4FD SetFilePointerEx
+                  17F FindNextFileW
+                  16E FindFirstFileExW
+                  168 FindClose
+                  450 ReadFile
+                  2F9 GetTimeZoneInformation
+                  576 TlsSetValue
+                  50B SetLastError
+                  209 GetCurrentProcess
+                  490 ReleaseSemaphore
+                  5A9 WaitForMultipleObjects
+                  535 SetThreadPriority
+                  5AB WaitForSingleObject
+                  20E GetCurrentThreadId
+                  4A8 ResumeThread
+                  11F DuplicateHandle
+                  552 Sleep
+                  250 GetLastError
+                  4F0 SetEvent
+                  20D GetCurrentThread
+                  2CC GetSystemDirectoryA
+                  3A5 LoadLibraryA
+                  573 TlsAlloc
+                  2ED GetThreadPriority
+                   7F CloseHandle
+                  4A2 ResetEvent
+                  2E4 GetThreadContext
+                  29D GetProcAddress
+                  20A GetCurrentProcessId
+                  19E FreeLibrary
+                  575 TlsGetValue
+                  574 TlsFree
+                   DE CreateSemaphoreA
+                   B3 CreateEventA
+                  52C SetThreadContext
+                  19F FreeLibraryAndExitThread
+
+    GDI32.dll
+                5F9000 Import Address Table
+                6512C8 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                   19 ChoosePixelFormat
+                  2FA SetPixelFormat
+                  315 SwapBuffers
+                  110 DescribePixelFormat
+
+    SHELL32.dll
+                5F9254 Import Address Table
+                65151C Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                   20 DragFinish
+                   1F DragAcceptFiles
+                   DE SHGetKnownFolderPath
+                   22 DragQueryFileA
+
+    ole32.dll
+                5F9388 Import Address Table
+                651650 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                   7B CoTaskMemFree
+
+  Summary
+
+      2E2000 .data
+       5A000 .rdata
+       25000 .reloc
+        2000 .rsrc
+      1F8000 .text
+        1000 _RDATA

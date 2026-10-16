@@ -1,0 +1,19 @@
+# Build output
+build/
+dist/
+proxy/*.obj
+proxy/*.exp
+proxy/*.lib
+proxy/exports.def
+*.obj
+*.exp
+*.lib
+*.pdb
+*.dll
+
+# Runtime
+tymod.log
+
+# Local dev artifacts
+backup/
+snapshots/

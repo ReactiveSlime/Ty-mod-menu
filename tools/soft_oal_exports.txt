@@ -1,0 +1,196 @@
+Microsoft (R) COFF/PE Dumper Version 14.44.35228.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file D:\Games\Steam\steamapps\common\TY the Tasmanian Tiger\soft_oal.dll
+
+File Type: DLL
+
+  Section contains the following exports for OpenAL32.dll
+
+    00000000 characteristics
+    56694404 time date stamp Thu Dec 10 19:21:08 2015
+        0.00 version
+           1 ordinal base
+         157 number of functions
+         157 number of names
+
+    ordinal hint RVA      name
+
+          1    0 00001A50 alAuxiliaryEffectSlotf
+          2    1 00001B20 alAuxiliaryEffectSlotfv
+          3    2 000022D0 alAuxiliaryEffectSloti
+          4    3 00002410 alAuxiliaryEffectSlotiv
+          5    4 00003080 alBuffer3f
+          6    5 000032A0 alBuffer3i
+          7    6 00004110 alBufferData
+          8    7 00004CE0 alBufferSamplesSOFT
+          9    8 00004EE0 alBufferSubDataSOFT
+         10    9 00002A10 alBufferSubSamplesSOFT
+         11    A 00003000 alBufferf
+         12    B 00003100 alBufferfv
+         13    C 000031A0 alBufferi
+         14    D 00003320 alBufferiv
+         15    E 00012740 alDeferUpdatesSOFT
+         16    F 000014D0 alDeleteAuxiliaryEffectSlots
+         17   10 00002710 alDeleteBuffers
+         18   11 000055C0 alDeleteEffects
+         19   12 00007140 alDeleteFilters
+         20   13 0000A660 alDeleteSources
+         21   14 000117D0 alDisable
+         22   15 000126B0 alDistanceModel
+         23   16 00012530 alDopplerFactor
+         24   17 000125B0 alDopplerVelocity
+         25   18 00005E10 alEffectf
+         26   19 00005EA0 alEffectfv
+         27   1A 000058A0 alEffecti
+         28   1B 00005D60 alEffectiv
+         29   1C 00011760 alEnable
+         30   1D 00007740 alFilterf
+         31   1E 000077D0 alFilterfv
+         32   1F 00007480 alFilteri
+         33   20 00007690 alFilteriv
+         34   21 000016C0 alGenAuxiliaryEffectSlots
+         35   22 00002860 alGenBuffers
+         36   23 000056E0 alGenEffects
+         37   24 00007260 alGenFilters
+         38   25 0000A840 alGenSources
+         39   26 00001DB0 alGetAuxiliaryEffectSlotf
+         40   27 00001E50 alGetAuxiliaryEffectSlotfv
+         41   28 00001C10 alGetAuxiliaryEffectSloti
+         42   29 00001CB0 alGetAuxiliaryEffectSlotiv
+         43   2A 000118A0 alGetBoolean
+         44   2B 00011D10 alGetBooleanv
+         45   2C 000035B0 alGetBuffer3f
+         46   2D 00003A60 alGetBuffer3i
+         47   2E 00002CE0 alGetBufferSamplesSOFT
+         48   2F 000034A0 alGetBufferf
+         49   30 00003670 alGetBufferfv
+         50   31 000037A0 alGetBufferi
+         51   32 00003B20 alGetBufferiv
+         52   33 00011950 alGetDouble
+         53   34 00011E70 alGetDoublev
+         54   35 000060B0 alGetEffectf
+         55   36 00006140 alGetEffectfv
+         56   37 00005F30 alGetEffecti
+         57   38 00005FE0 alGetEffectiv
+         58   39 00006800 alGetEnumValue
+         59   3A 00006680 alGetError
+         60   3B 000079E0 alGetFilterf
+         61   3C 00007A70 alGetFilterfv
+         62   3D 00007860 alGetFilteri
+         63   3E 00007910 alGetFilteriv
+         64   3F 00011A30 alGetFloat
+         65   40 00011FF0 alGetFloatv
+         66   41 00011B10 alGetInteger
+         67   42 00011BE0 alGetInteger64SOFT
+         68   43 00012290 alGetInteger64vSOFT
+         69   44 00012170 alGetIntegerv
+         70   45 000088F0 alGetListener3f
+         71   46 00008C10 alGetListener3i
+         72   47 00008830 alGetListenerf
+         73   48 00008A10 alGetListenerfv
+         74   49 00008BA0 alGetListeneri
+         75   4A 00008D90 alGetListeneriv
+         76   4B 000067D0 alGetProcAddress
+         77   4C 0000B2D0 alGetSource3dSOFT
+         78   4D 0000AE00 alGetSource3f
+         79   4E 0000BDA0 alGetSource3i
+         80   4F 0000C1D0 alGetSource3i64SOFT
+         81   50 0000B130 alGetSourcedSOFT
+         82   51 0000B3C0 alGetSourcedvSOFT
+         83   52 0000AC80 alGetSourcef
+         84   53 0000AEF0 alGetSourcefv
+         85   54 0000BBE0 alGetSourcei
+         86   55 0000C010 alGetSourcei64SOFT
+         87   56 0000C2D0 alGetSourcei64vSOFT
+         88   57 0000BE90 alGetSourceiv
+         89   58 00012430 alGetString
+         90   59 00001A10 alIsAuxiliaryEffectSlot
+         91   5A 000029B0 alIsBuffer
+         92   5B 00002FB0 alIsBufferFormatSupportedSOFT
+         93   5C 00005840 alIsEffect
+         94   5D 00011840 alIsEnabled
+         95   5E 000066E0 alIsExtensionPresent
+         96   5F 00007420 alIsFilter
+         97   60 0000AC40 alIsSource
+         98   61 00008050 alListener3f
+         99   62 000083B0 alListener3i
+        100   63 00007F70 alListenerf
+        101   64 000081C0 alListenerfv
+        102   65 00008370 alListeneri
+        103   66 00008590 alListeneriv
+        104   67 00012770 alProcessUpdatesSOFT
+        105   68 0000F040 alSource3dSOFT
+        106   69 0000EE40 alSource3f
+        107   6A 0000EC40 alSource3i
+        108   6B 0000F7A0 alSource3i64SOFT
+        109   6C 0000C980 alSourcePause
+        110   6D 0000CA60 alSourcePausev
+        111   6E 000102B0 alSourcePlay
+        112   6F 000100A0 alSourcePlayv
+        113   70 0000D090 alSourceQueueBuffers
+        114   71 0000CE10 alSourceRewind
+        115   72 0000CF10 alSourceRewindv
+        116   73 0000CBD0 alSourceStop
+        117   74 0000CCB0 alSourceStopv
+        118   75 0000D430 alSourceUnqueueBuffers
+        119   76 0000EEE0 alSourcedSOFT
+        120   77 0000F100 alSourcedvSOFT
+        121   78 0000ECF0 alSourcef
+        122   79 00010D50 alSourcefv
+        123   7A 0000EAF0 alSourcei
+        124   7B 0000F640 alSourcei64SOFT
+        125   7C 0000F890 alSourcei64vSOFT
+        126   7D 00010420 alSourceiv
+        127   7E 00012630 alSpeedOfSound
+        128   7F 000227F0 alcCaptureCloseDevice
+        129   80 0001D970 alcCaptureOpenDevice
+        130   81 00022C00 alcCaptureSamples
+        131   82 00022920 alcCaptureStart
+        132   83 00022AB0 alcCaptureStop
+        133   84 00023EC0 alcCloseDevice
+        134   85 00022360 alcCreateContext
+        135   86 00024400 alcDestroyContext
+        136   87 00023100 alcDevicePauseSOFT
+        137   88 00023270 alcDeviceResumeSOFT
+        138   89 00024310 alcGetContextsDevice
+        139   8A 0001D1C0 alcGetCurrentContext
+        140   8B 00022200 alcGetEnumValue
+        141   8C 00020E30 alcGetError
+        142   8D 000219B0 alcGetInteger64vSOFT
+        143   8E 00021870 alcGetIntegerv
+        144   8F 000220A0 alcGetProcAddress
+        145   90 00020EE0 alcGetString
+        146   91 00023440 alcGetStringiSOFT
+        147   92 0001C1D0 alcGetThreadContext
+        148   93 00021EA0 alcIsExtensionPresent
+        149   94 00022DB0 alcIsRenderFormatSupportedSOFT
+        150   95 0001DC20 alcLoopbackOpenDeviceSOFT
+        151   96 00024080 alcMakeContextCurrent
+        152   97 0001D280 alcOpenDevice
+        153   98 00023CA0 alcProcessContext
+        154   99 00022F80 alcRenderSamplesSOFT
+        155   9A 000235F0 alcResetDeviceSOFT
+        156   9B 000241E0 alcSetThreadContext
+        157   9C 00023B90 alcSuspendContext
+
+  Summary
+
+        1000 .CRT
+       22000 .bss
+        1000 .data
+        4000 .debug_abbrev
+        1000 .debug_aranges
+        2000 .debug_frame
+       11000 .debug_info
+        4000 .debug_line
+        A000 .debug_loc
+        1000 .debug_ranges
+        1000 .debug_str
+        2000 .edata
+        1000 .idata
+       24000 .rdata
+        4000 .reloc
+       53000 .text
+        1000 .tls
