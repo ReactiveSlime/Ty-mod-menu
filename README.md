@@ -18,8 +18,10 @@ No separate launcher or injector is needed; Steam launches the game as usual.
 
 ## Menu
 
-Press **INSERT** in-game to toggle the menu. While it is open the game no longer
-reads the mouse, so you can move it freely to navigate the menu.
+Press **INSERT** in-game to toggle the menu. While it is open TyMod captures the
+mouse and keyboard (including left/right/middle click) so you can click menu
+buttons without the game reacting. **Hold Shift or Alt** to hand control back to
+the game while the menu stays open.
 
 - **No-Clip** checkbox: fly through everything.
 - **Infinite Health** checkbox: keeps Ty's hit counter full (4), so you never

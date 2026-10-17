@@ -32,10 +32,14 @@ typedef void (APIENTRY* glUniformMatrix3fv_t)(int, int, unsigned char, const flo
 typedef BOOL(WINAPI* GetKeyboardState_t)(PBYTE);
 typedef BOOL(WINAPI* GetCursorPos_t)(LPPOINT);
 typedef BOOL(WINAPI* SetCursorPos_t)(int, int);
+typedef SHORT(WINAPI* GetAsyncKeyState_t)(int);
+typedef SHORT(WINAPI* GetKeyState_t)(int);
 
-static GetKeyboardState_t o_GetKeyboardState = nullptr;
-static GetCursorPos_t     o_GetCursorPos = nullptr;
-static SetCursorPos_t     o_SetCursorPos = nullptr;
+static GetKeyboardState_t  o_GetKeyboardState = nullptr;
+static GetCursorPos_t      o_GetCursorPos = nullptr;
+static SetCursorPos_t      o_SetCursorPos = nullptr;
+static GetAsyncKeyState_t  o_GetAsyncKeyState = nullptr;
+static GetKeyState_t       o_GetKeyState = nullptr;
 
 static SwapBuffers_t      o_SwapBuffers = nullptr;
 static wglGetCurrentDC_t  p_wglGetCurrentDC = nullptr;
@@ -188,6 +192,29 @@ static void APIENTRY hkglUniformMatrix3fv(int location, int count, unsigned char
     o_glUniformMatrix3fv(location, count, transpose, value);
 }
 
+// While the menu is open it captures input. Holding Shift or Alt (the
+// "release" keybind) hands control back to the game without closing the menu.
+static bool MouseButton(int vk)
+{
+    return vk == VK_LBUTTON || vk == VK_RBUTTON || vk == VK_MBUTTON ||
+           vk == VK_XBUTTON1 || vk == VK_XBUTTON2;
+}
+
+static bool MenuReleasesGameInput()
+{
+    static const int kReleaseKeys[] = { VK_LSHIFT, VK_RSHIFT, VK_LMENU, VK_RMENU };
+    for (int vk : kReleaseKeys)
+        if (o_GetAsyncKeyState && (o_GetAsyncKeyState(vk) & 0x8000))
+            return true;
+    return false;
+}
+
+// True when the menu should block the game from seeing this input.
+static bool MenuBlocksGameInput()
+{
+    return tymod::OverlayIsOpen() && !MenuReleasesGameInput();
+}
+
 static BOOL WINAPI hkGetKeyboardState(PBYTE keys)
 {
     BOOL r = o_GetKeyboardState(keys);
@@ -196,13 +223,34 @@ static BOOL WINAPI hkGetKeyboardState(PBYTE keys)
         static const int kMoveKeys[] = { 'W', 'A', 'S', 'D', VK_SPACE, VK_CONTROL };
         for (int vk : kMoveKeys) keys[vk] = 0;
     }
+    if (r && keys && MenuBlocksGameInput())
+    {
+        static const int kMouseKeys[] = { VK_LBUTTON, VK_RBUTTON, VK_MBUTTON, VK_XBUTTON1, VK_XBUTTON2 };
+        for (int vk : kMouseKeys) keys[vk] = 0;
+    }
+    return r;
+}
+
+static SHORT WINAPI hkGetAsyncKeyState(int vk)
+{
+    SHORT r = o_GetAsyncKeyState(vk);
+    if (MenuBlocksGameInput() && MouseButton(vk))
+        return 0;
+    return r;
+}
+
+static SHORT WINAPI hkGetKeyState(int vk)
+{
+    SHORT r = o_GetKeyState(vk);
+    if (MenuBlocksGameInput() && MouseButton(vk))
+        return 0;
     return r;
 }
 
 static BOOL WINAPI hkGetCursorPos(LPPOINT lpPoint)
 {
     BOOL r = o_GetCursorPos(lpPoint);
-    if (r && lpPoint && tymod::OverlayIsOpen())
+    if (r && lpPoint && MenuBlocksGameInput())
     {
         // Return the cached position so the game sees no movement while ImGui
         // still receives mouse input via WM_MOUSEMOVE.
@@ -227,7 +275,7 @@ static BOOL WINAPI hkGetCursorPos(LPPOINT lpPoint)
 
 static BOOL WINAPI hkSetCursorPos(int x, int y)
 {
-    if (tymod::OverlayIsOpen())
+    if (MenuBlocksGameInput())
         return TRUE;
     return o_SetCursorPos(x, y);
 }
@@ -314,7 +362,7 @@ static LRESULT CALLBACK hkWndProc(HWND h, UINT msg, WPARAM w, LPARAM l)
 {
     ImGui_ImplWin32_WndProcHandler(h, msg, w, l);
 
-    if (tymod::OverlayIsOpen())
+    if (MenuBlocksGameInput())
     {
         switch (msg)
         {
@@ -491,6 +539,16 @@ void tymod::ModInit()
         if (scp && MH_CreateHook(scp, &hkSetCursorPos, (void**)&o_SetCursorPos) == MH_OK)
         { MH_EnableHook(scp); Log("SetCursorPos hook installed @ %p", scp); }
         else Log("SetCursorPos hook failed");
+
+        void* gaks = (void*)GetProcAddress(user, "GetAsyncKeyState");
+        if (gaks && MH_CreateHook(gaks, &hkGetAsyncKeyState, (void**)&o_GetAsyncKeyState) == MH_OK)
+        { MH_EnableHook(gaks); Log("GetAsyncKeyState hook installed @ %p", gaks); }
+        else Log("GetAsyncKeyState hook failed");
+
+        void* gks2 = (void*)GetProcAddress(user, "GetKeyState");
+        if (gks2 && MH_CreateHook(gks2, &hkGetKeyState, (void**)&o_GetKeyState) == MH_OK)
+        { MH_EnableHook(gks2); Log("GetKeyState hook installed @ %p", gks2); }
+        else Log("GetKeyState hook failed");
     }
 
     if (MH_CreateHook(target, &hkSwapBuffers, (void**)&o_SwapBuffers) != MH_OK)

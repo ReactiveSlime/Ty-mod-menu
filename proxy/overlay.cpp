@@ -34,6 +34,7 @@ namespace tymod {
             ImGui::TextDisabled("WASD move, Space/Ctrl up/down");
             ImGui::TextDisabled("Shift = fast, E/Q turn heading");
             ImGui::TextDisabled("INSERT toggles this menu");
+            ImGui::TextDisabled("Hold Shift/Alt to play while open");
         }
         ImGui::End();
     }
