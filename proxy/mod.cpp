@@ -16,8 +16,6 @@
 // imgui_impl_win32.h intentionally #if 0's this declaration; declare it here.
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-// --- Frame-present hook (GDI SwapBuffers) + ImGui overlay ---
-
 typedef BOOL(WINAPI* SwapBuffers_t)(HDC);
 typedef HDC(WINAPI* wglGetCurrentDC_t)();
 typedef LRESULT(CALLBACK* WNDPROC_t)(HWND, UINT, WPARAM, LPARAM);
@@ -61,18 +59,18 @@ static void* g_resolve[RESOLVE_N] = {nullptr, nullptr, nullptr, nullptr, nullptr
 static const char* g_glNames[RESOLVE_N] = {"glUniformMatrix4fv", "glUseProgram", "glUseProgramObjectARB",
                                            "glProgramUniformMatrix4fv", "glUniformMatrix3fv"};
 
-// TEMP recon: log only (kind,prog,loc,matrix) uploads that CHANGE, first per
-// frame, so a constant projection logs once while a moving view logs every frame.
+// Recon: log only (kind,prog,loc,matrix) uploads that change, first per frame,
+// so a constant projection logs once and a moving view logs every frame.
 #define U4_MAX 500
 static struct { int kind; unsigned int prog; int loc; int lastFrame; float m[16]; } g_tab[U4_MAX];
 static int g_tabN = 0;
-bool g_recon = false;   // log matrix uploads (recon)
+bool g_recon = false;
 
 static void APIENTRY hkglUseProgram(unsigned int p)    { g_curProgram = p; o_glUseProgram(p); }
 static void APIENTRY hkglUseProgramARB(unsigned int p) { g_curProgram = p; o_glUseProgramARB(p); }
 
-// A rigid transform (rotation+translation, no scale) -- what a camera/view or
-// a static model matrix looks like. Column-major array: last row = [3],[7],[11],[15].
+// A rigid transform (rotation+translation, no scale): what a camera/view or a
+// static model matrix looks like. Column-major array: last row = [3],[7],[11],[15].
 static bool IsRigid(const float* v)
 {
     if (fabsf(v[3]) > 1e-3f || fabsf(v[7]) > 1e-3f || fabsf(v[11]) > 1e-3f || fabsf(v[15] - 1.0f) > 1e-3f)
@@ -151,7 +149,6 @@ static bool IsCameraMatrix(const float* v)
 
 static void APIENTRY hkglUniformMatrix4fv(int location, int count, unsigned char transpose, const float* value)
 {
-    // No-Clip chase camera: replace the game's view-projection with our own.
     if (value && count == 1 && IsCameraMatrix(value))
     {
         if (tymod::g_noclipEnabled) tymod::CameraNoteGame(value);
@@ -207,9 +204,8 @@ static BOOL WINAPI hkGetCursorPos(LPPOINT lpPoint)
     BOOL r = o_GetCursorPos(lpPoint);
     if (r && lpPoint && tymod::OverlayIsOpen())
     {
-        // Keep returning the last position so the game doesn't see movement
-        // but we also need to ensure ImGui sees it; ImGui gets WM_MOUSEMOVE.
-        // Returning the cached position prevents camera from spinning.
+        // Return the cached position so the game sees no movement while ImGui
+        // still receives mouse input via WM_MOUSEMOVE.
         static POINT last = {0,0};
         if (last.x != 0 || last.y != 0)
         {
@@ -270,8 +266,8 @@ static void TryHookGLUniform()
     if (h) CloseHandle(h);
 }
 
-// TEMP recon: log which GL functions the game asks for, so we know how it
-// sets up its camera (shader uniforms vs fixed-function matrices).
+// Recon: log which GL functions the game asks for, to see how it sets up its
+// camera (shader uniforms vs fixed-function matrices).
 static char g_seen[700][64];
 static int  g_seenN = 0;
 

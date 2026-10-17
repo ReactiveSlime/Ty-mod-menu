@@ -79,7 +79,7 @@ namespace tymod {
         float pos[3] = { p[0], p[1], p[2] };
         bool focused = s_wnd ? (GetForegroundWindow() == s_wnd) : true;
 
-        // ---- Heading from the game camera's own forward (mouse-controlled) ----
+        // Heading from the game camera's own forward (mouse-controlled)
         if (g_noclipEnabled)
         {
             float gf[3];
@@ -87,7 +87,6 @@ namespace tymod {
                 s_heading = atan2f(gf[2], gf[0]);
         }
 
-        // ---- Not flying: just track position, done ----
         if (!g_noclipEnabled)
         {
             s_ref[H0] = pos[H0]; s_ref[H1] = pos[H1]; s_ref[UP] = pos[UP];
@@ -96,7 +95,6 @@ namespace tymod {
             return;
         }
 
-        // ---- Just enabled: freeze at the current position ----
         if (!s_wasOn)
         {
             if (!Sane(pos[0]) || !Sane(pos[1]) || !Sane(pos[2])) return;
@@ -127,7 +125,6 @@ namespace tymod {
             s_frozen[UP] += step * vert;
         }
 
-        // ---- Write it back (position + mirror copy) ----
         if (Sane(s_frozen[0]) && Sane(s_frozen[1]) && Sane(s_frozen[2]))
         {
             volatile float* dst = (volatile float*)s_posAddr;

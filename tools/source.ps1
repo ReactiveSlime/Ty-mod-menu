@@ -35,25 +35,24 @@ foreach ($m in @("proxy", "tools", "README.md", "IDEAS.md", "PUBLISHING.md", ".g
     if (Test-Path $p) { Remove-Item $p -Recurse -Force }
 }
 
-# --- proxy source only (.cpp/.h), no build artifacts ---
+# proxy source only (.cpp/.h), no build artifacts
 $dst = Join-Path $OutDir "proxy"
 New-Item -ItemType Directory -Force -Path $dst | Out-Null
 Get-ChildItem (Join-Path $root "proxy") -File |
     Where-Object { $_.Extension -in ".cpp", ".h" } | Copy-Item -Destination $dst
 
-# --- tools (scripts + data files), minus the local release-packaging script ---
+# tools (scripts + data files), minus the local release-packaging scripts
 $dst = Join-Path $OutDir "tools"
 New-Item -ItemType Directory -Force -Path $dst | Out-Null
 Get-ChildItem (Join-Path $root "tools") |
     Where-Object { $_.Name -notin @("dist.ps1", "release.ps1") } |
     Copy-Item -Destination $dst -Recurse -Force
 
-# --- project docs (the personal publishing runbook stays local) ---
+# project docs (the personal publishing runbook stays local)
 Get-ChildItem $root -File |
     Where-Object { $_.Extension -eq ".md" -and $_.Name -ne "PUBLISHING.md" } |
     Copy-Item -Destination $OutDir
 
-# --- .gitignore ---
 $gitignore = @"
 # Build output
 build/
@@ -77,7 +76,7 @@ snapshots/
 "@
 Set-Content (Join-Path $OutDir ".gitignore") -Value $gitignore -Encoding ASCII
 
-# --- pin submodule commits to the currently vendored clones (fallback constant) ---
+# Pin submodule commits to the currently vendored clones (fallback constant).
 function Get-VendorSha($path, $fallback) {
     if (Test-Path $path) {
         try { $h = (git -C $path rev-parse HEAD 2>$null); if ($h) { return $h.Trim() } } catch {}
@@ -87,7 +86,6 @@ function Get-VendorSha($path, $fallback) {
 $imguiSha   = Get-VendorSha (Join-Path $root "vendor\imgui")   "098c71133c32b7b946ae2b6db27fc8a4d0629d68"
 $minhookSha = Get-VendorSha (Join-Path $root "vendor\minhook") "8af6b4acae5a9388fd742b56fa79ece89d96f823"
 
-# --- stage source, then declare the submodules ---
 if (-not $isRepo) { git init -q $OutDir }
 git -C $OutDir add -A
 

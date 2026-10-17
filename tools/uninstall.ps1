@@ -11,7 +11,7 @@ if (-not $GameDir) { throw "Could not find the TY install. Pass -GameDir 'D:\...
 $old = Join-Path $GameDir "OpenAL32.dll"
 $bak = Join-Path $root "backup\OpenAL32.dll.orig"
 
-if (-not (Test-Path $bak)) { throw "No backup found at $bak - cannot restore." }
+if (-not (Test-Path $bak)) { throw "No backup found at $bak, cannot restore." }
 
 Copy-Item $bak $old -Force
 Remove-Item (Join-Path $GameDir "tymod.log") -ErrorAction SilentlyContinue

@@ -1,7 +1,7 @@
 # TyMod
 
-A mod menu for **TY the Tasmanian Tiger** (Steam HD, 2016) that bakes into the
-game as a DLL proxy, with an in-game ImGui menu.
+A mod menu for **TY the Tasmanian Tiger** (Steam HD, 2016) that loads as a DLL
+proxy, with an in-game ImGui menu.
 
 ## How it works
 
@@ -14,16 +14,17 @@ small proxy that:
    overlay on top of the game each frame.
 3. Provides the **No-Clip** feature.
 
-No separate launcher or injector is needed — Steam launches the game as usual.
+No separate launcher or injector is needed; Steam launches the game as usual.
 
 ## Menu
 
-Press **INSERT** in-game to toggle the menu.
+Press **INSERT** in-game to toggle the menu. While it is open the game no longer
+reads the mouse, so you can move it freely to navigate the menu.
 
-- **No-Clip** checkbox — fly through everything.
-- **Infinite Health** checkbox — keeps Ty's hit counter full (4), so you never
+- **No-Clip** checkbox: fly through everything.
+- **Infinite Health** checkbox: keeps Ty's hit counter full (4), so you never
   run out of hits or lose a life.
-- **Speed** slider — movement speed (units/sec).
+- **Speed** slider: movement speed (units/sec).
 
 While flying:
 

@@ -60,7 +60,6 @@ if (-not (Test-Path (Join-Path $GameDir "soft_oal.dll"))) {
 }
 if (-not (Test-Path $built)) { throw "Mod DLL not found. Place Install.ps1 next to OpenAL32.dll (or build it first)." }
 
-# Back up the original once, then replace it with the proxy.
 $builtHash = (Get-FileHash $built -Algorithm SHA256).Hash
 $curHash   = if (Test-Path $target) { (Get-FileHash $target -Algorithm SHA256).Hash } else { "" }
 
