@@ -32,8 +32,12 @@ typedef void (APIENTRY* glUseProgram_t)(unsigned int);
 typedef void (APIENTRY* glProgramUniformMatrix4fv_t)(unsigned int, int, int, unsigned char, const float*);
 typedef void (APIENTRY* glUniformMatrix3fv_t)(int, int, unsigned char, const float*);
 typedef BOOL(WINAPI* GetKeyboardState_t)(PBYTE);
+typedef BOOL(WINAPI* GetCursorPos_t)(LPPOINT);
+typedef BOOL(WINAPI* SetCursorPos_t)(int, int);
 
 static GetKeyboardState_t o_GetKeyboardState = nullptr;
+static GetCursorPos_t     o_GetCursorPos = nullptr;
+static SetCursorPos_t     o_SetCursorPos = nullptr;
 
 static SwapBuffers_t      o_SwapBuffers = nullptr;
 static wglGetCurrentDC_t  p_wglGetCurrentDC = nullptr;
@@ -198,6 +202,40 @@ static BOOL WINAPI hkGetKeyboardState(PBYTE keys)
     return r;
 }
 
+static BOOL WINAPI hkGetCursorPos(LPPOINT lpPoint)
+{
+    BOOL r = o_GetCursorPos(lpPoint);
+    if (r && lpPoint && tymod::OverlayIsOpen())
+    {
+        // Keep returning the last position so the game doesn't see movement
+        // but we also need to ensure ImGui sees it; ImGui gets WM_MOUSEMOVE.
+        // Returning the cached position prevents camera from spinning.
+        static POINT last = {0,0};
+        if (last.x != 0 || last.y != 0)
+        {
+            *lpPoint = last;
+        }
+        else if (r)
+        {
+            last = *lpPoint;
+        }
+        return TRUE;
+    }
+    if (r && lpPoint)
+    {
+        static POINT last = {0,0};
+        last = *lpPoint;
+    }
+    return r;
+}
+
+static BOOL WINAPI hkSetCursorPos(int x, int y)
+{
+    if (tymod::OverlayIsOpen())
+        return TRUE;
+    return o_SetCursorPos(x, y);
+}
+
 static DWORD WINAPI InstallGLHookThread(LPVOID)
 {
     if (g_resolve[0] && MH_CreateHook(g_resolve[0], &hkglUniformMatrix4fv, (void**)&o_glUniformMatrix4fv) == MH_OK)
@@ -289,6 +327,12 @@ static LRESULT CALLBACK hkWndProc(HWND h, UINT msg, WPARAM w, LPARAM l)
         case WM_RBUTTONDOWN: case WM_RBUTTONUP: case WM_RBUTTONDBLCLK:
         case WM_MBUTTONDOWN: case WM_MBUTTONUP: case WM_MBUTTONDBLCLK:
         case WM_MOUSEWHEEL:
+        case WM_MOUSEHOVER:
+        case WM_MOUSELEAVE:
+        case WM_NCMOUSEMOVE:
+        case WM_NCLBUTTONDOWN: case WM_NCLBUTTONUP: case WM_NCLBUTTONDBLCLK:
+        case WM_NCRBUTTONDOWN: case WM_NCRBUTTONUP: case WM_NCRBUTTONDBLCLK:
+        case WM_INPUT:
         case WM_KEYDOWN: case WM_KEYUP: case WM_SYSKEYDOWN: case WM_SYSKEYUP:
         case WM_CHAR:
             return 0;
@@ -441,6 +485,16 @@ void tymod::ModInit()
         if (gks && MH_CreateHook(gks, &hkGetKeyboardState, (void**)&o_GetKeyboardState) == MH_OK)
         { MH_EnableHook(gks); Log("GetKeyboardState hook installed @ %p", gks); }
         else Log("GetKeyboardState hook failed");
+
+        void* gcp = (void*)GetProcAddress(user, "GetCursorPos");
+        if (gcp && MH_CreateHook(gcp, &hkGetCursorPos, (void**)&o_GetCursorPos) == MH_OK)
+        { MH_EnableHook(gcp); Log("GetCursorPos hook installed @ %p", gcp); }
+        else Log("GetCursorPos hook failed");
+
+        void* scp = (void*)GetProcAddress(user, "SetCursorPos");
+        if (scp && MH_CreateHook(scp, &hkSetCursorPos, (void**)&o_SetCursorPos) == MH_OK)
+        { MH_EnableHook(scp); Log("SetCursorPos hook installed @ %p", scp); }
+        else Log("SetCursorPos hook failed");
     }
 
     if (MH_CreateHook(target, &hkSwapBuffers, (void**)&o_SwapBuffers) != MH_OK)
