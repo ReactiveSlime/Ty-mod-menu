@@ -32,6 +32,16 @@ namespace tymod {
     static float s_gameFwd[3] = {0, 0, 1};
     static bool  s_haveGameFwd = false;
 
+    // Eye + right/up/forward basis of the camera actually being rendered this
+    // frame (the override camera while No-Clipping, otherwise the game's own).
+    // The ESP uses these for a reliable in-front/behind test and to place
+    // edge hints for items behind the camera.
+    static float s_viewEye[3]   = {0, 0, 0};
+    static float s_viewRight[3] = {1, 0, 0};
+    static float s_viewUp[3]    = {0, 1, 0};
+    static float s_viewFwd[3]   = {0, 0, 1};
+    static bool  s_haveView = false;
+
     static float s_smoothYaw = 0.0f, s_smoothPitch = 0.0f;
     static bool  s_smoothInit = false;
     static float s_headH = 80.0f;   // look-at height above the player's origin
@@ -86,9 +96,20 @@ namespace tymod {
         return true;
     }
 
-    // Record the game's own main-camera forward (for No-Clip movement heading)
-    // without touching the matrix. Rejects far-away cameras (reflections/sky).
-    void CameraNoteGame(const float* in)
+    bool CameraGetViewEyeBasis(float eye[3], float right[3], float up[3], float fwd[3])
+    {
+        if (!s_haveView) return false;
+        eye[0] = s_viewEye[0];   eye[1] = s_viewEye[1];   eye[2] = s_viewEye[2];
+        right[0] = s_viewRight[0]; right[1] = s_viewRight[1]; right[2] = s_viewRight[2];
+        up[0] = s_viewUp[0];     up[1] = s_viewUp[1];     up[2] = s_viewUp[2];
+        fwd[0] = s_viewFwd[0];   fwd[1] = s_viewFwd[1];   fwd[2] = s_viewFwd[2];
+        return true;
+    }
+
+    // Record the game's own main-camera eye + forward. 'recordView' is true
+    // when the game camera is the one actually being rendered this frame (no
+    // No-Clip override); then it also updates the ESP's view eye/forward.
+    void CameraNoteGame(const float* in, bool recordView)
     {
         float Rg[3][3], tg[3];
         Extract(in, Rg, tg);
@@ -104,6 +125,16 @@ namespace tymod {
 
         s_gameFwd[0] = Rg[2][0]; s_gameFwd[1] = Rg[2][1]; s_gameFwd[2] = Rg[2][2];
         s_haveGameFwd = true;
+
+        // The game's own camera is rendered now: record it too (used by the ESP).
+        if (recordView)
+        {
+            s_viewEye[0] = eye[0]; s_viewEye[1] = eye[1]; s_viewEye[2] = eye[2];
+            s_viewRight[0] = Rg[0][0]; s_viewRight[1] = Rg[0][1]; s_viewRight[2] = Rg[0][2];
+            s_viewUp[0] = Rg[1][0];    s_viewUp[1] = Rg[1][1];    s_viewUp[2] = Rg[1][2];
+            s_viewFwd[0] = Rg[2][0];   s_viewFwd[1] = Rg[2][1];   s_viewFwd[2] = Rg[2][2];
+            s_haveView = true;
+        }
     }
 
     // Build C' = C * M so the rendered camera sits at 'pos' looking along (yaw,pitch),
@@ -226,6 +257,13 @@ namespace tymod {
         ne[2] = head[2] - s_dist * pf[2];
 
         BuildOverride(in, Rg, tg, ne, yaw, pitch, out);
+        // The override camera is the one on screen: record its eye/basis so
+        // the ESP's behind test matches what is actually rendered.
+        s_viewEye[0] = ne[0]; s_viewEye[1] = ne[1]; s_viewEye[2] = ne[2];
+        s_viewRight[0] = pr[0]; s_viewRight[1] = pr[1]; s_viewRight[2] = pr[2];
+        s_viewUp[0] = pu[0];    s_viewUp[1] = pu[1];    s_viewUp[2] = pu[2];
+        s_viewFwd[0] = pf[0];   s_viewFwd[1] = pf[1];   s_viewFwd[2] = pf[2];
+        s_haveView = true;
         return true;
     }
 }

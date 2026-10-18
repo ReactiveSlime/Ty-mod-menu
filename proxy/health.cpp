@@ -19,9 +19,17 @@ namespace tymod {
 
     // Known location of Ty's hit counter (max 4), as an offset from the module
     // base. Found in-game with the exact-value scan below.
-    static const unsigned HEALTH_OFFSET = 0x2737CC;
+    // Mul-Ty-Player confirmed the build also has a Bull/Boonie health slot
+    // (+0x273814) used in Bull's Pen / Outback Safari, selected by the bool at
+    // +0x27E544. Without this, Infinite Health would be wrong there.
+    static const unsigned HEALTH_OFFSET       = 0x2737CC;
+    static const unsigned HEALTH_OFFSET_BULL  = 0x273814;
+    static const unsigned BULL_FLAG_OFFSET    = 0x27E544;
+    static const unsigned LEVEL_ID_OFFSET     = 0x280594;   // 10 = Outback Safari
+    static const int      OUTBACK_LEVEL_ID    = 10;
     static const int      HEALTH_MAX = 4;
     static unsigned       s_autoAddr = 0;
+    static unsigned       s_base     = 0;
 
     static unsigned       h_ea[HMAX];
     static float          h_val[HMAX];   // value seen at the last scan/filter step
@@ -43,8 +51,9 @@ namespace tymod {
 
     void HealthInitAuto(unsigned moduleBase)
     {
+        s_base = moduleBase;
         s_autoAddr = moduleBase ? (moduleBase + HEALTH_OFFSET) : 0;
-        if (!s_autoAddr) { Log("HealthInitAuto: no base"); return; }
+        if (!s_base) { Log("HealthInitAuto: no base"); return; }
         int v = 0;
         __try { v = *(volatile int*)s_autoAddr; } __except (EXCEPTION_EXECUTE_HANDLER) {}
         Log("HealthInitAuto: addr=0x%X value=%d", s_autoAddr, v);
@@ -159,8 +168,23 @@ namespace tymod {
     {
         __try
         {
-            if (g_infiniteHealth && s_autoAddr)
-                *(volatile int*)s_autoAddr = HEALTH_MAX;
+            if (g_infiniteHealth && s_base)
+            {
+                // Pick the right health slot for the current transform. MTP's
+                // IsBull() bool (+0x27E544) covers Bull's Pen, but in Outback
+                // Safari (level 10) Ty rides the bull without that flag set,
+                // and MTP writes +0x273814 explicitly there, so also key off
+                // the level id.
+                bool bull = false;
+                __try
+                {
+                    bull = ((*(volatile unsigned char*)(s_base + BULL_FLAG_OFFSET) & 1) != 0) ||
+                           ((int)(*(volatile unsigned*)(s_base + LEVEL_ID_OFFSET)) == OUTBACK_LEVEL_ID);
+                }
+                __except (EXCEPTION_EXECUTE_HANDLER) {}
+                unsigned addr = s_base + (bull ? HEALTH_OFFSET_BULL : HEALTH_OFFSET);
+                *(volatile int*)addr = HEALTH_MAX;
+            }
 
             if (h_frozen && h_hasTarget)
             {

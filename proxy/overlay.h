@@ -7,4 +7,5 @@ namespace tymod {
     void OverlayRender();
     void OverlayToggle();
     bool OverlayIsOpen();
+    bool OverlayControlReleased();
 }

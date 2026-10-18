@@ -4,6 +4,9 @@
 #include "noclip.h"
 #include "health.h"
 #include "camera.h"
+#include "cheats.h"
+#include "esp.h"
+#include "settings.h"
 
 #include <windows.h>
 #include <string.h>
@@ -32,14 +35,10 @@ typedef void (APIENTRY* glUniformMatrix3fv_t)(int, int, unsigned char, const flo
 typedef BOOL(WINAPI* GetKeyboardState_t)(PBYTE);
 typedef BOOL(WINAPI* GetCursorPos_t)(LPPOINT);
 typedef BOOL(WINAPI* SetCursorPos_t)(int, int);
-typedef SHORT(WINAPI* GetAsyncKeyState_t)(int);
-typedef SHORT(WINAPI* GetKeyState_t)(int);
 
-static GetKeyboardState_t  o_GetKeyboardState = nullptr;
-static GetCursorPos_t      o_GetCursorPos = nullptr;
-static SetCursorPos_t      o_SetCursorPos = nullptr;
-static GetAsyncKeyState_t  o_GetAsyncKeyState = nullptr;
-static GetKeyState_t       o_GetKeyState = nullptr;
+static GetKeyboardState_t o_GetKeyboardState = nullptr;
+static GetCursorPos_t     o_GetCursorPos = nullptr;
+static SetCursorPos_t     o_SetCursorPos = nullptr;
 
 static SwapBuffers_t      o_SwapBuffers = nullptr;
 static wglGetCurrentDC_t  p_wglGetCurrentDC = nullptr;
@@ -57,6 +56,24 @@ static bool g_inLevel = false;
 static int  g_u4Frame = 0;
 static int  g_u4Logged = 0;
 static unsigned int g_curProgram = 0;
+
+// FOV override. The game's P has an unusual layout: it carries the projection
+// x/y scales as the NORMS of rows 0/1 (those rows are scaled camera axes, and
+// the perspective divide lives in row 3), so read the scales from the row
+// norms — m[5] alone deforms as the camera pitches up/down.
+// Scaling the clip x/y by k shrinks the visible world by k, so
+//   tan(new) = tan(cur)/k   =>   k = 1 / (scaleY * tan(target/2)).
+static void ApplyFov(float* m)
+{
+    if (!tymod::g_fovOn || tymod::g_fovY <= 1.0f) return;
+    float b = sqrtf(m[1]*m[1] + m[5]*m[5] + m[9]*m[9]);   // y-scale
+    if (b < 1e-5f) return;
+    float t = tanf(tymod::g_fovY * 0.5f * 3.14159265f / 180.0f);
+    if (t < 1e-5f) return;
+    float k = 1.0f / (b * t);
+    m[0] *= k; m[4] *= k; m[8]  *= k; m[12] *= k;
+    m[1] *= k; m[5] *= k; m[9]  *= k; m[13] *= k;
+}
 
 #define RESOLVE_N 5
 static void* g_resolve[RESOLVE_N] = {nullptr, nullptr, nullptr, nullptr, nullptr};
@@ -155,13 +172,20 @@ static void APIENTRY hkglUniformMatrix4fv(int location, int count, unsigned char
 {
     if (value && count == 1 && IsCameraMatrix(value))
     {
-        if (tymod::g_noclipEnabled) tymod::CameraNoteGame(value);
+        // Feed the game's view-projection to the ESP (it projects collectibles
+        // with this, so ESP sees exactly what through the camera). The FOV
+        // override is baked in first so ESP and world stay aligned.
+        float out[16];
         float tmp[16];
-        if (tymod::CameraApply(value, tmp))
-        {
-            o_glUniformMatrix4fv(location, count, transpose, tmp);
-            return;
-        }
+        bool applied = tymod::CameraApply(value, tmp);
+        memcpy(out, applied ? tmp : value, sizeof(out));
+        ApplyFov(out);
+        tymod::EspSetViewProj(out);
+        // Always note the game's main camera: its heading feeds No-Clip and,
+        // when it is the camera on screen, the ESP's eye/forward.
+        tymod::CameraNoteGame(value, !applied);
+        o_glUniformMatrix4fv(location, count, transpose, out);
+        return;
     }
 
     if (g_recon && g_inLevel && value)
@@ -192,65 +216,27 @@ static void APIENTRY hkglUniformMatrix3fv(int location, int count, unsigned char
     o_glUniformMatrix3fv(location, count, transpose, value);
 }
 
-// While the menu is open it captures input. Holding Shift or Alt (the
-// "release" keybind) hands control back to the game without closing the menu.
-static bool MouseButton(int vk)
-{
-    return vk == VK_LBUTTON || vk == VK_RBUTTON || vk == VK_MBUTTON ||
-           vk == VK_XBUTTON1 || vk == VK_XBUTTON2;
-}
-
-static bool MenuReleasesGameInput()
-{
-    static const int kReleaseKeys[] = { VK_LSHIFT, VK_RSHIFT, VK_LMENU, VK_RMENU };
-    for (int vk : kReleaseKeys)
-        if (o_GetAsyncKeyState && (o_GetAsyncKeyState(vk) & 0x8000))
-            return true;
-    return false;
-}
-
-// True when the menu should block the game from seeing this input.
-static bool MenuBlocksGameInput()
-{
-    return tymod::OverlayIsOpen() && !MenuReleasesGameInput();
-}
-
 static BOOL WINAPI hkGetKeyboardState(PBYTE keys)
 {
     BOOL r = o_GetKeyboardState(keys);
+    // With the menu open the game must not see clicks (it polls the buttons
+    // here, not via window messages). SHIFT/ALT releases control as usual.
+    if (r && keys && tymod::OverlayIsOpen() && !tymod::OverlayControlReleased())
+    {
+        keys[VK_LBUTTON] = keys[VK_MBUTTON] = keys[VK_RBUTTON] = 0;
+    }
     if (r && keys && tymod::g_noclipEnabled)
     {
         static const int kMoveKeys[] = { 'W', 'A', 'S', 'D', VK_SPACE, VK_CONTROL };
         for (int vk : kMoveKeys) keys[vk] = 0;
     }
-    if (r && keys && MenuBlocksGameInput())
-    {
-        static const int kMouseKeys[] = { VK_LBUTTON, VK_RBUTTON, VK_MBUTTON, VK_XBUTTON1, VK_XBUTTON2 };
-        for (int vk : kMouseKeys) keys[vk] = 0;
-    }
-    return r;
-}
-
-static SHORT WINAPI hkGetAsyncKeyState(int vk)
-{
-    SHORT r = o_GetAsyncKeyState(vk);
-    if (MenuBlocksGameInput() && MouseButton(vk))
-        return 0;
-    return r;
-}
-
-static SHORT WINAPI hkGetKeyState(int vk)
-{
-    SHORT r = o_GetKeyState(vk);
-    if (MenuBlocksGameInput() && MouseButton(vk))
-        return 0;
     return r;
 }
 
 static BOOL WINAPI hkGetCursorPos(LPPOINT lpPoint)
 {
     BOOL r = o_GetCursorPos(lpPoint);
-    if (r && lpPoint && MenuBlocksGameInput())
+    if (r && lpPoint && tymod::OverlayIsOpen() && !tymod::OverlayControlReleased())
     {
         // Return the cached position so the game sees no movement while ImGui
         // still receives mouse input via WM_MOUSEMOVE.
@@ -275,7 +261,7 @@ static BOOL WINAPI hkGetCursorPos(LPPOINT lpPoint)
 
 static BOOL WINAPI hkSetCursorPos(int x, int y)
 {
-    if (MenuBlocksGameInput())
+    if (tymod::OverlayIsOpen() && !tymod::OverlayControlReleased())
         return TRUE;
     return o_SetCursorPos(x, y);
 }
@@ -362,7 +348,7 @@ static LRESULT CALLBACK hkWndProc(HWND h, UINT msg, WPARAM w, LPARAM l)
 {
     ImGui_ImplWin32_WndProcHandler(h, msg, w, l);
 
-    if (MenuBlocksGameInput())
+    if (tymod::OverlayIsOpen() && !tymod::OverlayControlReleased())
     {
         switch (msg)
         {
@@ -418,13 +404,47 @@ static void EnsureOverlay()
 
 static void PollMenuHotkey()
 {
-    bool now = (GetAsyncKeyState(VK_INSERT) & 0x8000) != 0;
-    if (now && !g_prevInsert)
+    // Configurable menu hotkey (edge-triggered).
+    int mk = tymod::g_keys.menu ? tymod::g_keys.menu : VK_INSERT;
+    static bool g_sessionInit = false;
+    static bool g_prevMenu = false;
+    bool now = (GetAsyncKeyState(mk) & 0x8000) != 0;
+    if (!g_sessionInit) { g_prevMenu = now; g_sessionInit = true; }
+    if (now && !g_prevMenu)
     {
         tymod::OverlayToggle();
         tymod::Log("menu %s", tymod::OverlayIsOpen() ? "opened" : "closed");
     }
-    g_prevInsert = now;
+    g_prevMenu = now;
+
+    // Per-feature toggle hotkeys, same edge trigger. Only when not open (the
+    // menu owns the keyboard while open; binding happens inside ImGui).
+    if (!tymod::OverlayIsOpen())
+    {
+        struct { int vk; bool* target; } feats[] = {
+            { tymod::g_keys.noclip,     &tymod::g_noclipEnabled },
+            { tymod::g_keys.superSpeed, &tymod::g_superSpeed },
+        };
+        static bool prevs[2] = { false, false };
+        for (int i = 0; i < 2; i++)
+        {
+            if (!feats[i].vk) { prevs[i] = false; continue; }
+            bool k = (GetAsyncKeyState(feats[i].vk) & 0x8000) != 0;
+            if (k && !prevs[i]) *feats[i].target = !*feats[i].target;
+            prevs[i] = k;
+        }
+    }
+
+    // ESP hotkey stays active even while the menu is open (doesn't conflict
+    // with typing unless bound to a letter, which users should avoid).
+    if (tymod::g_keys.esp)
+    {
+        static bool prevEsp = false;
+        bool k = (GetAsyncKeyState(tymod::g_keys.esp) & 0x8000) != 0;
+        if (k && !prevEsp && !tymod::OverlayIsOpen())
+            tymod::EspSetEnabled(!tymod::EspIsEnabled());
+        prevEsp = k;
+    }
 
     static bool prevF7 = false;
     bool f7 = (GetAsyncKeyState(VK_F7) & 0x8000) != 0;
@@ -478,11 +498,13 @@ static BOOL WINAPI hkSwapBuffers(HDC hdc)
 
     EnsureOverlay();
     PollMenuHotkey();
+    tymod::SettingsTick();
     if (g_overlayReady)
     {
         ManageCursor();
         tymod::NoClipTick();
         tymod::HealthTick();
+        tymod::CheatsTick();
         tymod::OverlayNewFrame();
         tymod::OverlayRender();
     }
@@ -539,16 +561,6 @@ void tymod::ModInit()
         if (scp && MH_CreateHook(scp, &hkSetCursorPos, (void**)&o_SetCursorPos) == MH_OK)
         { MH_EnableHook(scp); Log("SetCursorPos hook installed @ %p", scp); }
         else Log("SetCursorPos hook failed");
-
-        void* gaks = (void*)GetProcAddress(user, "GetAsyncKeyState");
-        if (gaks && MH_CreateHook(gaks, &hkGetAsyncKeyState, (void**)&o_GetAsyncKeyState) == MH_OK)
-        { MH_EnableHook(gaks); Log("GetAsyncKeyState hook installed @ %p", gaks); }
-        else Log("GetAsyncKeyState hook failed");
-
-        void* gks2 = (void*)GetProcAddress(user, "GetKeyState");
-        if (gks2 && MH_CreateHook(gks2, &hkGetKeyState, (void**)&o_GetKeyState) == MH_OK)
-        { MH_EnableHook(gks2); Log("GetKeyState hook installed @ %p", gks2); }
-        else Log("GetKeyState hook failed");
     }
 
     if (MH_CreateHook(target, &hkSwapBuffers, (void**)&o_SwapBuffers) != MH_OK)
@@ -559,6 +571,10 @@ void tymod::ModInit()
     if (MH_EnableHook(target) != MH_OK) { Log("MH_EnableHook failed"); return; }
 
     NoClipInit();
-    tymod::HealthInitAuto((unsigned)tymod::NoClipAddress() - 0x270B78);
+    unsigned base = (unsigned)tymod::NoClipAddress() - 0x270B78;
+    tymod::HealthInitAuto(base);
+    tymod::CheatsInit(base);
+    tymod::EspInit(base);
+    tymod::SettingsInit();
     Log("SwapBuffers hook installed");
 }
