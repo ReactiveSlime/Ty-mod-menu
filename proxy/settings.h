@@ -13,6 +13,10 @@ namespace tymod {
     extern bool  g_fovOn;
     extern float g_fovY;
 
+    // FPS limiter target (frames per second, 0 = unlimited). Defaults to the
+    // monitor's refresh rate so the game stops running uncapped.
+    extern float g_fpsLimit;
+
     void SettingsInit();       // load tymod.ini (or apply defaults)
     void SettingsTick();       // saves automatically when the settings change
     const char* KeyName(int vk); // prints a VK as a readable name

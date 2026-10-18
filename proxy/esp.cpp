@@ -20,6 +20,7 @@ static bool g_drawOffscreen = true;
 static float g_maxDist = 1000.0f;
 
 enum ECats { C_OPAL, C_CRATE, C_BILBY, C_INVIS, C_COG, C_TE, C_RAIN, CAT_MAX };
+static bool g_catEnabled[CAT_MAX] = {true,true,true,true,true,true,true};
 static const char* kCatName[CAT_MAX] = {
     "Opals", "Crates", "Caged Bilbies", "Invisible Crates", "Golden Cogs", "Thunder Eggs", "Rainbow Scales"
 };
@@ -198,6 +199,7 @@ void EspDraw() {
 
     int drawn = 0;
     for (int c = 0; c < CAT_MAX; ++c) {
+        if (!g_catEnabled[c]) continue;
         // ponytail: level gates — opals, cogs & thunder eggs live only in
         // playable levels; rainbow scales only in the Rainbow Cliffs hub (lvl 0).
         if ((c == C_OPAL || c == C_COG || c == C_TE) && lvl == 0) continue;
@@ -396,8 +398,11 @@ void EspExportPersist(EspPersist& out)
     out.offscreen = g_drawOffscreen;
     out.maxDist = g_maxDist;
     for (int i = 0; i < ESP_CAT_MAX && i < CAT_MAX; i++)
+    {
+        out.cats[i] = g_catEnabled[i];
         for (int k = 0; k < 3; k++)
             out.colors[i][k] = (&kCatColor[i].x)[k];
+    }
 }
 
 void EspImportPersist(const EspPersist& in)
@@ -408,8 +413,11 @@ void EspImportPersist(const EspPersist& in)
     g_drawOffscreen = in.offscreen;
     g_maxDist = in.maxDist;
     for (int i = 0; i < ESP_CAT_MAX && i < CAT_MAX; i++)
+    {
+        g_catEnabled[i] = in.cats[i];
         for (int k = 0; k < 3; k++)
             (&kCatColor[i].x)[k] = in.colors[i][k];
+    }
 }
 
 void EspMenu() {
@@ -422,7 +430,16 @@ void EspMenu() {
     ImGui::SliderFloat("Max Dist", &g_maxDist, 100.0f, 100000.0f, "%.0f",
                        ImGuiSliderFlags_Logarithmic);
     for (int c = 0; c < CAT_MAX; ++c) {
-        ImGui::ColorEdit3(kCatName[c], (float*)&kCatColor[c]);
+        // per-category toggle checkbox (tinted with its color) + color picker
+        ImGui::PushStyleColor(ImGuiCol_Text, (ImU32)ImColor(g_catEnabled[c] ? kCatColor[c]
+                                        : ImVec4(kCatColor[c].x, kCatColor[c].y, kCatColor[c].z, 0.35f)));
+        ImGui::Checkbox(kCatName[c], &g_catEnabled[c]);
+        ImGui::PopStyleColor();
+        ImGui::SameLine(170.0f);
+        char lbl[24];
+        sprintf_s(lbl, sizeof(lbl), "###col%d", c);
+        ImGui::ColorEdit3(lbl, (float*)&kCatColor[c],
+                          ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
     }
 }
 }

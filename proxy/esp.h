@@ -21,6 +21,7 @@ static const int ESP_CAT_MAX = 7;
 // ESP settings snapshot for persistence.
 struct EspPersist {
     bool  on, labels, dist, offscreen;
+    bool  cats[ESP_CAT_MAX];          // per-category draw toggles
     float maxDist;
     float colors[ESP_CAT_MAX][3];
 };

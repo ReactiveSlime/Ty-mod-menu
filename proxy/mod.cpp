@@ -477,8 +477,39 @@ static void ManageCursor()
     }
 }
 
+// FPS limiter: block in the present hook until the next frame is due. Cheap
+// and exact enough: Sleep(1) while far from the deadline, spin the last ~2ms.
+static void FpsLimitWait()
+{
+    float lim = tymod::g_fpsLimit;
+    if (lim < 1.0f) return;
+    static double s_next = 0.0;
+    static LARGE_INTEGER s_fq = {};
+    if (s_fq.QuadPart == 0) QueryPerformanceFrequency(&s_fq);
+    double inv = 1.0 / (double)lim;
+    LARGE_INTEGER c;
+    QueryPerformanceCounter(&c);
+    double now = (double)c.QuadPart / (double)s_fq.QuadPart;
+
+    if (s_next < now - inv)   // long stall (load, pause): restart cleanly
+        s_next = now + inv;
+    double deadline = s_next;
+    const double spinFromMs = 2.5;
+    double q = now;
+
+    while (true)
+    {
+        QueryPerformanceCounter(&c);
+        q = (double)c.QuadPart / (double)s_fq.QuadPart;
+        if (q >= deadline) break;
+        if (deadline - q > spinFromMs / 1000.0) Sleep(1);
+    }
+    s_next = q + inv;
+}
+
 static BOOL WINAPI hkSwapBuffers(HDC hdc)
 {
+    FpsLimitWait();
     if (!g_glLogged) { g_glLogged = true; LogGLInfo(); }
 
     if (!g_u4Hooked) TryHookGLUniform();

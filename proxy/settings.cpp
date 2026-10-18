@@ -13,6 +13,7 @@ namespace tymod {
 
     bool  g_fovOn = false;
     float g_fovY  = 70.0f;
+    float g_fpsLimit = 60.0f;
 
     // One POD snapshot of every persisted setting, for change detection.
     struct Snap
@@ -21,8 +22,9 @@ namespace tymod {
         bool  fovOn, noclip;
         bool  lives, breath, inv, superOn;
         bool  espOn, espLabels, espDist, espOffscreen;
-        float fov, speed, superMult, espMaxDist;
+        float fov, speed, superMult, espMaxDist, fpsLimit;
         float colors[7][3];
+        bool  espCats[7];
     };
 
     static Snap g_last = {};   // last saved / loaded state
@@ -45,6 +47,7 @@ namespace tymod {
         g_keys.esp        = s.keys[2];
         g_keys.superSpeed = s.keys[3];
         g_fovOn = s.fovOn;  g_fovY = s.fov;
+        g_fpsLimit = s.fpsLimit;
         g_noclipEnabled = s.noclip;  g_speed = s.speed;
         g_infiniteLives = s.lives;  g_infiniteBreath = s.breath;  g_invincible = s.inv;
         g_superSpeed = s.superOn;   g_superMult = s.superMult;
@@ -52,7 +55,10 @@ namespace tymod {
         ep.on = s.espOn; ep.labels = s.espLabels; ep.dist = s.espDist;
         ep.offscreen = s.espOffscreen; ep.maxDist = s.espMaxDist;
         for (int i = 0; i < 7; i++)
+        {
+            ep.cats[i] = s.espCats[i];
             for (int k = 0; k < 3; k++) ep.colors[i][k] = s.colors[i][k];
+        }
         EspImportPersist(ep);
     }
 
@@ -62,6 +68,7 @@ namespace tymod {
         s.keys[0] = g_keys.menu; s.keys[1] = g_keys.noclip;
         s.keys[2] = g_keys.esp;  s.keys[3] = g_keys.superSpeed;
         s.fovOn = g_fovOn; s.fov = g_fovY;
+        s.fpsLimit = g_fpsLimit;
         s.noclip = g_noclipEnabled; s.speed = g_speed;
         s.lives = g_infiniteLives; s.breath = g_infiniteBreath; s.inv = g_invincible;
         s.superOn = g_superSpeed; s.superMult = g_superMult;
@@ -70,7 +77,10 @@ namespace tymod {
         s.espOn = ep.on; s.espLabels = ep.labels; s.espDist = ep.dist;
         s.espOffscreen = ep.offscreen; s.espMaxDist = ep.maxDist;
         for (int i = 0; i < 7; i++)
+        {
+            s.espCats[i] = ep.cats[i];
             for (int k = 0; k < 3; k++) s.colors[i][k] = ep.colors[i][k];
+        }
     }
 
     static void Save(const Snap& s)
@@ -85,9 +95,12 @@ namespace tymod {
         fprintf(f, "noclip=%d\nspeed=%.1f\n", s.noclip ? 1 : 0, s.speed);
         fprintf(f, "lives=%d\nbreath=%d\ninv=%d\nsuper=%d\nsuperMult=%.2f\n",
             s.lives ? 1 : 0, s.breath ? 1 : 0, s.inv ? 1 : 0, s.superOn ? 1 : 0, s.superMult);
+        fprintf(f, "fps=%.1f\n", s.fpsLimit);
         fprintf(f, "espOn=%d\nespLabels=%d\nespDist=%d\nespOffscreen=%d\nespMaxDist=%.1f\n",
             s.espOn ? 1 : 0, s.espLabels ? 1 : 0, s.espDist ? 1 : 0,
             s.espOffscreen ? 1 : 0, s.espMaxDist);
+        for (int i = 0; i < 7; i++)
+            fprintf(f, "espCat%d=%d\n", i, s.espCats[i] ? 1 : 0);
         for (int i = 0; i < 7; i++)
             fprintf(f, "col%d=%.3f,%.3f,%.3f\n", i, s.colors[i][0], s.colors[i][1], s.colors[i][2]);
         fclose(f);
@@ -105,6 +118,14 @@ namespace tymod {
         s.espMaxDist = 1000.0f;
         s.espOn = true;
         s.espLabels = true; s.espDist = true; s.espOffscreen = true;
+        for (int i = 0; i < 7; i++) s.espCats[i] = true;
+        // FPS limit defaults to the monitor's refresh rate.
+        DEVMODEA dm = {}; dm.dmSize = sizeof(dm);
+        if (EnumDisplaySettingsA(nullptr, ENUM_CURRENT_SETTINGS, &dm) &&
+            dm.dmDisplayFrequency > 10 && dm.dmDisplayFrequency < 250)
+            s.fpsLimit = (float)dm.dmDisplayFrequency;
+        else
+            s.fpsLimit = 60.0f;
         static const float def[7][3] = {
             {0.8f,0.2f,1.0f}, {0.9f,0.7f,0.2f}, {0.2f,0.9f,0.9f}, {0.6f,0.6f,0.9f},
             {1.0f,0.8f,0.2f}, {0.95f,0.35f,0.1f}, {0.2f,1.0f,0.4f},
@@ -150,6 +171,12 @@ namespace tymod {
                     // rescan the three floats after the '='
                     const char* eq = strchr(line, '=');
                     if (eq) sscanf_s(eq + 1, "%f,%f,%f", &s.colors[ci][0], &s.colors[ci][1], &s.colors[ci][2]);
+                }
+                else if (1 == sscanf_s(line, "fps=%f", &vf))
+                    s.fpsLimit = vf;
+                else if (2 == sscanf_s(line, "espCat%d=%d", &ci, &b) && ci >= 0 && ci < 7)
+                {
+                    s.espCats[ci] = b != 0;
                 }
             }
             fclose(f);

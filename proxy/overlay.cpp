@@ -102,6 +102,12 @@ namespace tymod {
                 ImGui::Checkbox("Set FOV", &g_fovOn);
                 if (g_fovOn)
                     ImGui::SliderFloat("FOV", &g_fovY, 40.0f, 120.0f, "%.0f deg");
+                ImGui::Separator();
+                bool capOn = g_fpsLimit > 0.0f;
+                if (ImGui::Checkbox("Limit FPS", &capOn))
+                    g_fpsLimit = capOn ? 60.0f : 0.0f;
+                if (capOn)
+                    ImGui::SliderFloat("FPS target", &g_fpsLimit, 15.0f, 240.0f, "%.0f");
             }
 
             if (ImGui::CollapsingHeader("Hotkeys"))
@@ -145,11 +151,6 @@ namespace tymod {
                     tymod::CheatsWarp(tymod::CheatsLevelIdOf(s_warpIndex));
                 if (!inLevel) { ImGui::EndDisabled(); ImGui::TextDisabled("(in-game only)"); }
             }
-
-            float p[3];
-            NoClipGetPos(p);
-            ImGui::Text("Pos  %.1f, %.1f, %.1f", p[0], p[1], p[2]);
-            ImGui::Text("Lives %d   Opals %d", tymod::CheatsLives(), tymod::CheatsOpals());
 
             if (ImGui::CollapsingHeader("Collectible ESP"))
                 EspMenu();
