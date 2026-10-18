@@ -35,7 +35,7 @@ Parking lot for future mod menu items, grouped by effort.
 - [ ] **Freeze timers**: mission / race countdowns.
 - [ ] **Super Jump / No Fall Damage**: poke vertical velocity or the fall-damage
       check.
-- [ ] **FOV slider**: find the projection/FOV value.
+- [x] **FOV slider**: find the projection/FOV value.
 
 ## Larger
 - [x] **Collectible ESP / waypoints**: draw markers to collectibles (needs a
@@ -43,9 +43,9 @@ Parking lot for future mod menu items, grouped by effort.
 - [ ] **One-hit kill enemies** / **disable enemy AI**.
 
 ## Quality of life
-- [ ] Configurable menu hotkey (currently INSERT).
-- [ ] Persist settings (enabled features, speed) to a config file next to the DLL.
-- [ ] Per-feature hotkeys.
+- [x] Configurable menu hotkey (currently INSERT).
+- [x] Persist settings (enabled features, speed) to a config file next to the DLL.
+- [x] Per-feature hotkeys.
 
 ## Open issue (not a feature)
 - **Infinite Health still fails in Outback Safari** (2026-10-18): health now keys
