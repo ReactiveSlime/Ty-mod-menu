@@ -19,7 +19,7 @@ namespace tymod {
     struct Snap
     {
         int   keys[4];
-        bool  fovOn, noclip;
+        bool  fovOn;
         bool  lives, breath, inv, superOn;
         bool  espOn, espLabels, espDist, espOffscreen;
         float fov, speed, superMult, espMaxDist, fpsLimit;
@@ -48,7 +48,12 @@ namespace tymod {
         g_keys.superSpeed = s.keys[3];
         g_fovOn = s.fovOn;  g_fovY = s.fov;
         g_fpsLimit = s.fpsLimit;
-        g_noclipEnabled = s.noclip;  g_speed = s.speed;
+        // No-Clip always starts OFF, even if the ini says it was on. While it
+        // is enabled we feed the game a neutral pad (gamepad.cpp) so its
+        // physics don't fight our frozen position; restoring it on launch would
+        // leave the game deaf to the controller until the user toggled it off.
+        // It's a transient flight toggle, not a startup preference.
+        g_noclipEnabled = false;  g_speed = s.speed;
         g_infiniteLives = s.lives;  g_infiniteBreath = s.breath;  g_invincible = s.inv;
         g_superSpeed = s.superOn;   g_superMult = s.superMult;
         EspPersist ep;
@@ -69,7 +74,7 @@ namespace tymod {
         s.keys[2] = g_keys.esp;  s.keys[3] = g_keys.superSpeed;
         s.fovOn = g_fovOn; s.fov = g_fovY;
         s.fpsLimit = g_fpsLimit;
-        s.noclip = g_noclipEnabled; s.speed = g_speed;
+        s.speed = g_speed;
         s.lives = g_infiniteLives; s.breath = g_infiniteBreath; s.inv = g_invincible;
         s.superOn = g_superSpeed; s.superMult = g_superMult;
         EspPersist ep;
@@ -92,7 +97,9 @@ namespace tymod {
         fprintf(f, "menuKey=%d\nnoclipKey=%d\nespKey=%d\nsuperKey=%d\n",
             s.keys[0], s.keys[1], s.keys[2], s.keys[3]);
         fprintf(f, "fovOn=%d\nfov=%.1f\n", s.fovOn ? 1 : 0, s.fov);
-        fprintf(f, "noclip=%d\nspeed=%.1f\n", s.noclip ? 1 : 0, s.speed);
+        // No-Clip's enabled state is deliberately not persisted: it always
+        // starts off (see ApplySnapshot). Only its speed is saved.
+        fprintf(f, "speed=%.1f\n", s.speed);
         fprintf(f, "lives=%d\nbreath=%d\ninv=%d\nsuper=%d\nsuperMult=%.2f\n",
             s.lives ? 1 : 0, s.breath ? 1 : 0, s.inv ? 1 : 0, s.superOn ? 1 : 0, s.superMult);
         fprintf(f, "fps=%.1f\n", s.fpsLimit);
@@ -154,7 +161,6 @@ namespace tymod {
                 else if (1 == sscanf_s(line, "superKey=%d", &vi))  s.keys[3] = vi;
                 else if (1 == sscanf_s(line, "fovOn=%d", &b))      s.fovOn = b != 0;
                 else if (1 == sscanf_s(line, "fov=%f", &vf))       s.fov = vf;
-                else if (1 == sscanf_s(line, "noclip=%d", &b))     s.noclip = b != 0;
                 else if (1 == sscanf_s(line, "speed=%f", &vf))     s.speed = vf;
                 else if (1 == sscanf_s(line, "lives=%d", &b))      s.lives = b != 0;
                 else if (1 == sscanf_s(line, "breath=%d", &b))     s.breath = b != 0;

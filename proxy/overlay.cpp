@@ -78,7 +78,7 @@ namespace tymod {
 
     static void BuildMenu()
     {
-        ImGui::SetNextWindowSize(ImVec2(250, 0), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(270, 640), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowPos(ImVec2(40, 40), ImGuiCond_FirstUseEver);
         if (ImGui::Begin("TyMod", &s_open))
         {
@@ -158,7 +158,11 @@ namespace tymod {
             ImGui::Separator();
             ImGui::TextDisabled("WASD move, Space/Ctrl up/down");
             ImGui::TextDisabled("Shift = fast, E/Q turn heading");
-            ImGui::TextDisabled("INSERT toggles this menu");
+            ImGui::TextDisabled("%s toggles this menu",
+                g_keys.menu ? KeyName(g_keys.menu) : "INSERT");
+            ImGui::TextDisabled("Hold Shift/Alt to release control");
+            ImGui::TextDisabled("Pad: R3+L3 menu, dpad/stick+A/B, RB = fast");
+            ImGui::TextDisabled("No-Clip flight: stick + triggers");
         }
         ImGui::End();
     }
@@ -172,6 +176,9 @@ namespace tymod {
         ImGuiIO& io = ImGui::GetIO();
         io.IniFilename = nullptr;
         io.LogFilename = nullptr;
+        // Keyboard nav makes the controller work: gamepad.cpp feeds arrow keys,
+        // Enter and Escape, which only move focus when nav is enabled.
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         ImGui::StyleColorsDark();
 
         if (!ImGui_ImplWin32_Init(hwnd)) { Log("ImGui_ImplWin32_Init failed"); return false; }

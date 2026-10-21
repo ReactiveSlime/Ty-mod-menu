@@ -39,7 +39,8 @@ Set-Content -LiteralPath (Join-Path $proxy "exports.def") -Value $fwdDef -Encodi
 $minhook = Join-Path $root "vendor\minhook"
 $imgui   = Join-Path $root "vendor\imgui"
 $sources = @(
-    "dllmain.cpp", "log.cpp", "mod.cpp", "overlay.cpp", "noclip.cpp", "health.cpp", "camera.cpp", "esp.cpp", "cheats.cpp", "settings.cpp",
+    "dllmain.cpp", "log.cpp", "mod.cpp", "overlay.cpp", "noclip.cpp", "health.cpp",
+    "camera.cpp", "esp.cpp", "cheats.cpp", "settings.cpp", "gamepad.cpp",
     "$minhook\src\buffer.c", "$minhook\src\hook.c", "$minhook\src\trampoline.c", "$minhook\src\hde\hde32.c",
     "$imgui\imgui.cpp", "$imgui\imgui_draw.cpp", "$imgui\imgui_tables.cpp", "$imgui\imgui_widgets.cpp",
     "$imgui\backends\imgui_impl_win32.cpp", "$imgui\backends\imgui_impl_opengl3.cpp"

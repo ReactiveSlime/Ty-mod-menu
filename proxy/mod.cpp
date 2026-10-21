@@ -7,6 +7,7 @@
 #include "cheats.h"
 #include "esp.h"
 #include "settings.h"
+#include "gamepad.h"
 
 #include <windows.h>
 #include <string.h>
@@ -529,6 +530,7 @@ static BOOL WINAPI hkSwapBuffers(HDC hdc)
 
     EnsureOverlay();
     PollMenuHotkey();
+    tymod::GamepadTick();
     tymod::SettingsTick();
     if (g_overlayReady)
     {
@@ -593,6 +595,8 @@ void tymod::ModInit()
         { MH_EnableHook(scp); Log("SetCursorPos hook installed @ %p", scp); }
         else Log("SetCursorPos hook failed");
     }
+
+    GamepadInit();
 
     if (MH_CreateHook(target, &hkSwapBuffers, (void**)&o_SwapBuffers) != MH_OK)
     {

@@ -1,6 +1,7 @@
 #include "noclip.h"
 #include "log.h"
 #include "camera.h"
+#include "gamepad.h"
 
 #include <windows.h>
 #include <cmath>
@@ -11,13 +12,18 @@
 //   - a mirror copy sits at pos + 0x10 and must be written too
 //   - we keep our own 'frozen' position and write it back every frame
 //   - movement is relative to the game camera's heading (mouse-controlled)
-//   - E / Q nudge the heading while flying; Shift = fast
+//   - E / Q nudge the heading while flying; Shift or controller RB = fast
+// Water fix: the game forces a swim hero-state while Ty is in water and the
+// swim physics re-clamp his position to the surface ("water grabs Ty"). While
+// No-Clip is on we overwrite those swim states with an airborne one so the
+// swim state machine releases him. Hero state (Ty) = TY.exe + 0x27158C.
 
 namespace tymod {
     bool  g_noclipEnabled = false;
     float g_speed = 750.0f;   // units / second
 
     static long  s_posAddr = 0;
+    static long  s_stateAddr = 0;          // hero state (int) for water release
     static float s_frozen[3] = {0, 0, 0};
     static float s_heading = 0.0f;         // horizontal forward angle (radians)
     static float s_ref[3] = {0, 0, 0};     // position in memory at end of last frame
@@ -61,7 +67,9 @@ namespace tymod {
     {
         long base = (long)(ULONG_PTR)GetModuleHandleA(nullptr);
         s_posAddr = base + 0x270B78;
-        Log("NoClipInit: moduleBase=0x%X posAddr=0x%X", (unsigned)base, (unsigned)s_posAddr);
+        s_stateAddr = base + 0x27158C;
+        Log("NoClipInit: moduleBase=0x%X posAddr=0x%X stateAddr=0x%X",
+            (unsigned)base, (unsigned)s_posAddr, (unsigned)s_stateAddr);
     }
 
     void NoClipTick()
@@ -111,10 +119,22 @@ namespace tymod {
             if (s && !s_prevSub) g_speed = (g_speed > 35.0f) ? g_speed - 25.0f : 10.0f;
             s_prevAdd = a; s_prevSub = s;
 
-            float step = g_speed * (Key(VK_SHIFT) ? 3.0f : 1.0f) * dt;
+            bool fast = Key(VK_SHIFT) || tymod::GamepadFastHeld();
+            float step = g_speed * (fast ? 3.0f : 1.0f) * dt;
+
             float fwd  = (float)((Key('W') ? 1 : 0) - (Key('S') ? 1 : 0));
             float side = (float)((Key('D') ? 1 : 0) - (Key('A') ? 1 : 0));
             float vert = (float)((Key(VK_SPACE) ? 1 : 0) - (Key(VK_CONTROL) ? 1 : 0));
+
+            // Controller: left stick = forward/strafe, triggers = up/down.
+            float gp[3];
+            tymod::GamepadMoveAxes(gp);
+            fwd  += gp[0];
+            side += gp[1];
+            vert += gp[2];
+            if (fwd  >  1.0f) fwd  =  1.0f; else if (fwd  < -1.0f) fwd  = -1.0f;
+            if (side >  1.0f) side =  1.0f; else if (side < -1.0f) side = -1.0f;
+            if (vert >  1.0f) vert =  1.0f; else if (vert < -1.0f) vert = -1.0f;
 
             if (Key('E')) s_heading -= 1.5f * dt;   // E turns left
             if (Key('Q')) s_heading += 1.5f * dt;   // Q turns right
@@ -127,6 +147,23 @@ namespace tymod {
 
         if (Sane(s_frozen[0]) && Sane(s_frozen[1]) && Sane(s_frozen[2]))
         {
+            // Release Ty from the water: if the game has him in a swim/water
+            // state, swap it for an airborne one so the swim physics stop
+            // dragging him to the surface. Only touch water states, so walking
+            // animations etc. are unaffected.
+            if (s_stateAddr)
+            {
+                volatile int* st = (volatile int*)s_stateAddr;
+                switch (*st)
+                {
+                    case 14: case 15: case 16: case 17: case 19: case 20:
+                    case 21: case 37: case 38: case 39: case 44: case 49: case 52:
+                        *st = 9;   // Gliding (airborne, no vertical clamp)
+                        break;
+                    default: break;
+                }
+            }
+
             volatile float* dst = (volatile float*)s_posAddr;
             dst[0] = s_frozen[0]; dst[1] = s_frozen[1]; dst[2] = s_frozen[2];
             volatile float* mir = (volatile float*)(s_posAddr + 0x10);

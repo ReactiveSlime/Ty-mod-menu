@@ -30,7 +30,7 @@ New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
 # Refresh only what we manage; leave .git and vendor\ (the submodule working
 # copies) untouched so re-publishing keeps history/remotes and stays buildable.
-foreach ($m in @("proxy", "tools", "README.md", "IDEAS.md", "PUBLISHING.md", ".gitignore", ".gitmodules")) {
+foreach ($m in @("proxy", "tools", "README.md", "PUBLISHING.md", ".gitignore", ".gitmodules")) {
     $p = Join-Path $OutDir $m
     if (Test-Path $p) { Remove-Item $p -Recurse -Force }
 }
